@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: linear-gradient(to right, #74ebd5, #acb6e5);
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            background: white;
+            transition: 0.3s;
+        }
+        .container:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        input {
+            padding: 10px;
+            width: 80%;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 10px 15px;
+            cursor: pointer;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .weather {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .weather img {
+            width: 80px;
+        }
+        .history {
+            margin-top: 30px;
+            text-align: left;
+        }
+        .history h4 {
+            margin-bottom: 10px;
+        }
+        .history ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .history li {
+            background: #e2e6ea;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Weather App</h2>
+        <input type="text" id="city" placeholder="Enter city name">
+        <button onclick="getWeather()">Get Weather</button>
+        <div class="weather" id="weather"></div>
+        <div class="history">
+            <h4>Past Searches</h4>
+            <ul id="searchHistory"></ul>
+        </div>
+    </div>
+
+    <script>
+        let pastSearches = [];
+
+        async function getWeather() {
+            const city = document.getElementById('city').value;
+            if (!city) return;
+
+            const apiKey = 'ca0ecfe9a5e751c2c7c5797c01d141a1'; // Your OpenWeatherMap API key
+            const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.cod === 200) {
+                    const cityName = data.name;
+                    const temperature = data.main.temp;
+                    const description = data.weather[0].description;
+                    const icon = data.weather[0].icon;
+
+                    document.getElementById('weather').innerHTML = `
+                        <h3>${cityName}, ${data.sys.country}</h3>
+                        <p><strong>Temperature:</strong> ${temperature}°C</p>
+                        <p><strong>Condition:</strong> ${description}</p>
+                        <img src="https://openweathermap.org/img/wn/${icon}.png" alt="Weather icon">
+                    `;
+
+                    addToHistory(cityName, temperature);
+                } else {
+                    document.getElementById('weather').innerHTML = `<p style="color: red;">City not found</p>`;
+                }
+            } catch (error) {
+                document.getElementById('weather').innerHTML = `<p style="color: red;">Error fetching data</p>`;
+            }
+        }
+
+        function addToHistory(cityName, temp) {
+            const entry = `${cityName} - ${temp}°C`;
+            if (!pastSearches.find(item => item === entry)) {
+                pastSearches.unshift(entry);
+                if (pastSearches.length > 5) pastSearches.pop();
+                updateHistory();
+            }
+        }
+
+        function updateHistory() {
+            const historyList = document.getElementById('searchHistory');
+            historyList.innerHTML = pastSearches.map(item => `<li>${item}</li>`).join('');
+        }
+    </script>
+</body>
+</html>
